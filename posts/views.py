@@ -4,7 +4,7 @@ from django.shortcuts import render
 from .models import *
 from newsletter.models import Signup
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count
+from django.db.models import Count, Q
 
 
 def index(request):
@@ -45,6 +45,22 @@ def blog(request):
         'category_count': category_count
     }
     return render(request, 'blog.html', context)
+
+
+def search(request):
+    queryset = Post.objects.all()
+    query = request.GET.get('q')
+    if query:
+        queryset = queryset.filter(
+            Q(title__icontains=query),
+            Q(overview__icontains=query)
+        ).distinct()
+
+    context = {
+        'queryset': queryset
+    }
+
+    return render(request, 'search_results.html', context)
 
 
 def post(request, id):
