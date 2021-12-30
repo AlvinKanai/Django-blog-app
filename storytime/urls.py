@@ -23,8 +23,8 @@ from posts.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),
-    path('blog/', blog, name='blog-home'),
-    path('post/', post, name='post'),
+    path('blog/', blog, name='blog-posts'),
+    path('post/<id>/', post, name='post-detail'),
 ]
 
 if settings.DEBUG:

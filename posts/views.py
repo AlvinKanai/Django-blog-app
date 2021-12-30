@@ -1,6 +1,10 @@
+from django.core import paginator
+from django.db.models.query import QuerySet
 from django.shortcuts import render
 from .models import *
 from newsletter.models import Signup
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count
 
 
 def index(request):
@@ -21,8 +25,33 @@ def index(request):
 
 
 def blog(request):
-    return render(request, 'blog.html')
+    category_count = get_category_count()
+    post_list = Post.objects.all()
+    most_recent = Post.objects.order_by('-timestamp')[:3]
+    paginator = Paginator(post_list, 2)
+    page_request_var = 'page'
+    page = request.GET.get(page_request_var)
+    try:
+        paginated_queryset = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_queryset = paginator.page(1)
+    except EmptyPage:
+        paginated_queryset = paginator.page(paginator.num_pages)
+
+    context = {
+        'post_list': paginated_queryset,
+        'page_request_var': page_request_var,
+        'most_recent': most_recent,
+        'category_count': category_count
+    }
+    return render(request, 'blog.html', context)
 
 
-def post(request):
+def post(request, id):
     return render(request, 'post.html')
+
+
+def get_category_count():
+    queryset = Post.objects.values(
+        'categories__title').annotate(Count('categories__title'))
+    return queryset
