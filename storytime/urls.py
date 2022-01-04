@@ -25,7 +25,8 @@ urlpatterns = [
     path('', index, name='index'),
     path('blog/', blog, name='blog-posts'),
     path('post/<id>/', post, name='post-detail'),
-    path('search/', search, name='search')
+    path('search/', search, name='search'),
+    path('tinymce/', include('tinymce.urls')),
 ]
 
 if settings.DEBUG:

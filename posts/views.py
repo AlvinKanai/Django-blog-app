@@ -1,6 +1,6 @@
 from django.core import paginator
 from django.db.models.query import QuerySet
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import *
 from newsletter.models import Signup
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -25,10 +25,11 @@ def index(request):
 
 
 def blog(request):
+    categories = Category.objects.all()[:6]
     category_count = get_category_count()
     post_list = Post.objects.all()
     most_recent = Post.objects.order_by('-timestamp')[:3]
-    paginator = Paginator(post_list, 2)
+    paginator = Paginator(post_list, 5)
     page_request_var = 'page'
     page = request.GET.get(page_request_var)
     try:
@@ -42,7 +43,8 @@ def blog(request):
         'post_list': paginated_queryset,
         'page_request_var': page_request_var,
         'most_recent': most_recent,
-        'category_count': category_count
+        'category_count': category_count,
+        'categories': categories
     }
     return render(request, 'blog.html', context)
 
@@ -64,7 +66,17 @@ def search(request):
 
 
 def post(request, id):
-    return render(request, 'post.html')
+    post = get_object_or_404(Post, id=id)
+    category_count = get_category_count()
+    most_recent = Post.objects.order_by('-timestamp')[:3]
+    categories = Category.objects.all()[:6]
+    context = {
+        'post': post,
+        'most_recent': most_recent,
+        'categories': categories,
+        'category_count': category_count,
+    }
+    return render(request, 'post.html', context)
 
 
 def get_category_count():
