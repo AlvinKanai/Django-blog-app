@@ -39,7 +39,7 @@
                                 {% for category in posts.categories.all %}
                                 <a href="#">{{ category }}</a> {% endfor %}
                             </div>
-                            <a href="post.html">
+                            <a href="{{post.get_absolute_url}}">
                                 <h2 class="h4">{{ post.title }}</h2>
                             </a>
                         </header>
