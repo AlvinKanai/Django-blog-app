@@ -2,11 +2,11 @@ from django.core import paginator
 from django.db.models.query import QuerySet
 from django.shortcuts import redirect, render, get_object_or_404, reverse
 
-from posts.forms import CommentForm
+from posts.forms import CommentForm, PostForm
 from .models import *
 from newsletter.models import Signup
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count, Q
+from django.db.models import Count
 
 
 def index(request):
@@ -38,8 +38,6 @@ def blog(request):
         paginated_queryset = paginator.page(page)
     except PageNotAnInteger:
         paginated_queryset = paginator.page(1)
-    except EmptyPage:
-        paginated_queryset = paginator.page(paginator.num_pages)
 
     context = {
         'post_list': paginated_queryset,
@@ -56,10 +54,7 @@ def search(request):
     query = request.GET.get('q')
     if query:
         queryset = queryset.filter(
-            Q(title__icontains=query),
-            Q(overview__icontains=query)
-        ).distinct()
-
+            title__icontains=query, overview__icontains=query).distinct()
     context = {
         'queryset': queryset
     }
@@ -72,6 +67,8 @@ def post(request, id):
     category_count = get_category_count()
     most_recent = Post.objects.order_by('-timestamp')[:3]
     categories = Category.objects.all()[:6]
+    if request.user.is_authenticated:
+        PostView.objects.get_or_create(user=request.user, post=post)
     # comment form
     form = CommentForm(request.POST or None)
     if request.method == 'POST':
@@ -92,7 +89,57 @@ def post(request, id):
     return render(request, 'post.html', context)
 
 
+def post_create(request):
+    title = 'Create'
+    form = PostForm(request.POST or None, request.FILES or None)
+    author = get_author(request.user)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            form.instance.author = author
+            return redirect(reverse('post-detail', kwargs={
+                'id': form.instance.id
+            }))
+    context = {
+        'title': title,
+        'form': form
+    }
+    return render(request, "post_create.html", context)
+
+
+def post_update(request, id):
+    title = 'Edit'
+    post = get_object_or_404(Post, id=id)
+    form = PostForm(request.POST or None, request.FILES or None, instance=post)
+    author = get_author(request.user)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            form.instance.author = author
+            return redirect(reverse('post-detail', kwargs={
+                'id': form.instance.id
+            }))
+    context = {
+        'title': title,
+        'form': form
+    }
+    return render(request, "post_create.html", context)
+
+
+def post_delete(request, id):
+    post = get_object_or_404(Post, id=id)
+    post.delete()
+    return redirect(reverse('blog-posts'))
+
+
 def get_category_count():
     queryset = Post.objects.values(
         'categories__title').annotate(Count('categories__title'))
     return queryset
+
+
+def get_author(user):
+    queryset = Author.objects.filter(user=user)
+    if queryset.exists():
+        return queryset[0]
+    return None

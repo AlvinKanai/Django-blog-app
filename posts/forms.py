@@ -18,7 +18,8 @@ class PostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = '__all__'
+        fields = ('title', 'overview', 'content', 'thumbnail',
+                  'categories', 'featured', 'previous_post', 'next_post', )
 
 
 class CommentForm(forms.ModelForm):
@@ -27,7 +28,6 @@ class CommentForm(forms.ModelForm):
         'placeholder': 'Type your comment',
         'id': 'usercomment',
         'rows': '4'
-
     }))
 
     class Meta:

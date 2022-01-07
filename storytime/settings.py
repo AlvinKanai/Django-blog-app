@@ -31,6 +31,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    # default
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,6 +45,7 @@ INSTALLED_APPS = [
     'posts',
     'newsletter',
     'tinymce',
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -68,6 +74,11 @@ TEMPLATES = [
             ],
         },
     },
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 WSGI_APPLICATION = 'storytime.wsgi.application'
@@ -157,3 +168,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'menubar': True,
     'statusbar': True,
 }
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+SITE_ID = 1
